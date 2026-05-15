@@ -9,6 +9,8 @@
     "pm2": "pm2 start index.js --name ss-arena-bot --restart-delay=5000"
   },
   "dependencies": {
+    "@google-cloud/firestore": "^8.6.0",
+    "@grpc/grpc-js": "^1.14.3",
     "axios": "^1.6.0",
     "dotenv": "^16.4.0",
     "firebase-admin": "^12.0.0",
