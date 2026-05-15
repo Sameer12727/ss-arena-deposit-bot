@@ -42,7 +42,7 @@ async function sendWelcome(client, message, userNumber) {
   const payNum = settings.paymentNumber || 'N/A';
   const amount = settings.depositAmount || 'N/A';
 
-  const welcomeMsg = `🎮 *SS Arena Payment Manager*\n━━━━━━━━━━━━━━━━\nAssalam o Alaikum! 👋\n\nFree Fire tournament mein participate karne ke liye deposit submit karein.\n\n💳 *Payment Details:*\n• Account: ${accName} (${payNum})\n• Amount: Rs. ${amount}\n• Method: JazzCash / EasyPaisa\n\n📋 *Payment karne ke baad:*\nReply mein likho: *deposit*\n\nMain sirf payments handle karta hoon. 🤖`;
+  const welcomeMsg = `🎮 *SS Arena Payment Manager*\n━━━━━━━━━━━━━━━━\nAssalam o Alaikum! 👋\n\nSS ARENA me deposit krne ke liye DEPOSIT type karein.\n\n💳 *Payment Details:*\n• Account: ${accName} (${payNum})\n• Amount: Rs. ${amount}\n• Method: Only JAZZCASH\n\n📋 *Payment karne ke baad:*\nReply mein likho: *deposit*\n\nMain sirf payments handle karta hoon. 🤖`;
 
   await client.sendMessage(message.from, welcomeMsg);
   
@@ -57,7 +57,6 @@ async function processDeposit(client, message, userNumber, userName) {
   const textBody = message.body || '';
 
   // CHECK: Does the message have media? 
-  // Also check if it's an image (inline or sent as a document/file)
   const hasMedia = message.hasMedia;
   const isInlineImage = message.type === 'image';
   const isDocumentImage = message.type === 'document' && isValidImageMime(message.mimetype);
@@ -65,7 +64,7 @@ async function processDeposit(client, message, userNumber, userName) {
 
   // Validation: Missing Image or Invalid Format
   if (!hasMedia || !isValidImage) {
-    return client.sendMessage(message.from, '❌ Screenshot nahi mila ya format galat hai. Transaction ID ke saath image attach karein. (Sirf image files allowed hain)');
+    return client.sendMessage(message.from, '❌ Screenshot nahi mili ya format galat hai. Transaction ID ke saath image attach karein. (Sirf image files allowed hain)');
   }
 
   // Validation: Missing TXN ID
@@ -98,11 +97,11 @@ async function processDeposit(client, message, userNumber, userName) {
     // Convert Base64 data URL to Buffer
     const buffer = Buffer.from(media.data, 'base64');
     
-    // Determine file extension from mimetype (default to png if unknown)
+    // Determine file extension from mimetype
     const ext = media.mimetype ? media.mimetype.split('/')[1] : 'png';
     const fileName = `txn_${txnId}_${Date.now()}.${ext}`;
     
-    // Upload to ImgBB (ImgBB supports almost all image formats automatically)
+    // Upload to ImgBB
     const imgResult = await uploadToImgBB(buffer, fileName);
 
     // Save to Firestore
@@ -121,8 +120,8 @@ async function processDeposit(client, message, userNumber, userName) {
     // Clear state
     userState.delete(userNumber);
 
-    const statusUrl = `${process.env.STATUS_PAGE_URL || 'https://your-domain.com/status.html'}?txn=${txnId}`;
-    const successMsg = `✅ *Deposit Request Submit Ho Gaya!*\n━━━━━━━━━━━━━━━━━\n📋 Transaction ID: ${txnId}\n⏳ Status: Pending Review\n\nAdmin review karne ke baad aapko notify kiya jayega.\nStatus check karein: ${statusUrl}\n\nWait karein — 5-30 minutes mein reply milegi. 🙏`;
+    // UPDATED MESSAGE: Status link hataya, aur yahan notify karne ka zikr kiya
+    const successMsg = `✅ *Deposit Request Submit Ho Gaya!*\n━━━━━━━━━━━━━━━━━\n📋 Transaction ID: ${txnId}\n⏳ Status: Pending Review\n\nAdmin review karne ke baad aapko *yahi par* Payment ID aur Instructions bata diye jayenge.\n\nWait karein — 5-30 minutes mein reply milegi. 🙏`;
     
     await client.sendMessage(message.from, successMsg);
     logger.success(`Deposit processed successfully for TXN: ${txnId}`);
