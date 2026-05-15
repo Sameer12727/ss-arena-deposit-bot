@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SS Arena - Payment Status</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #070B14; --bg-secondary: #0D1526; --border-subtle: rgba(99, 179, 237, 0.12);
+      --accent-blue: #3B82F6; --accent-green: #10B981; --accent-red: #EF4444; --accent-amber: #F59E0B;
+      --text-primary: #F1F5F9; --text-secondary: #94A3B8; --text-muted: #475569;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 24px; padding: 48px 32px; max-width: 450px; width: 90%; text-align: center; }
+    .logo { font-family: 'Rajdhani', sans-serif; font-size: 24px; letter-spacing: 2px; margin-bottom: 32px; color: var(--text-secondary); }
+    .status-icon { font-size: 64px; margin-bottom: 20px; }
+    .status-title { font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+    .status-subtitle { color: var(--text-secondary); font-size: 15px; line-height: 1.6; }
+    .payment-id { margin-top: 16px; padding: 12px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; font-family: 'Rajdhani', sans-serif; font-size: 24px; color: var(--accent-green); letter-spacing: 2px; }
+    .loader { width: 50px; height: 50px; border: 4px solid var(--border-subtle); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🛡️ SS ARENA</div>
+    <div id="content">
+      <div class="loader"></div>
+      <p style="color: var(--text-secondary);">Checking status...</p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const txnId = urlParams.get('txn');
+    const contentDiv = document.getElementById('content');
+
+    if (!txnId) {
+      contentDiv.innerHTML = `
+        <div class="status-icon">🔍</div>
+        <div class="status-title">Missing Transaction ID</div>
+        <div class="status-subtitle">Please use the exact link provided by the bot.</div>`;
+    } else {
+      db.collection('deposits').where('transactionId', '==', txnId).limit(1).get()
+        .then(snapshot => {
+          if (snapshot.empty) {
+            contentDiv.innerHTML = `
+              <div class="status-icon">🚫</div>
+              <div class="status-title" style="color: var(--text-muted)">Not Found</div>
+              <div class="status-subtitle">Transaction ID "${txnId}" was not found in our system.</div>`;
+          } else {
+            const data = snapshot.docs[0].data();
+            if (data.status === 'pending') {
+              contentDiv.innerHTML = `
+                <div class="status-icon">⏳</div>
+                <div class="status-title" style="color: var(--accent-amber)">Under Review</div>
+                <div class="status-subtitle">Your payment is pending. Admin will review it shortly. Please wait...</div>`;
+            } else if (data.status === 'approved') {
+              contentDiv.innerHTML = `
+                <div class="status-icon">🎉</div>
+                <div class="status-title" style="color: var(--accent-green)">Payment Approved!</div>
+                <div class="status-subtitle">Congratulations! Your deposit is confirmed.</div>
+                <div class="payment-id">${data.paymentId || 'N/A'}</div>`;
+            } else if (data.status === 'rejected') {
+              contentDiv.innerHTML = `
+                <div class="status-icon">❌</div>
+                <div class="status-title" style="color: var(--accent-red)">Rejected</div>
+                <div class="status-subtitle">Your deposit was rejected.<br>Reason: ${data.rejectReason || 'Not specified'}</div>`;
+            }
+          }
+        })
+        .catch(err => {
+          contentDiv.innerHTML = `
+            <div class="status-icon">⚠️</div>
+            <div class="status-title">Error</div>
+            <div class="status-subtitle">Could not fetch status. Check your internet connection.</div>`;
+        });
+    }
+  </script>
+</body>
+</html>

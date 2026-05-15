@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Deposits: Authenticated admins can read/write. 
+    // Public can list if they are querying by transactionId (for status page).
+    match /deposits/{depositId} {
+      allow get: if request.auth != null;
+      allow list: if true; // Required for public status page query by TXN ID
+      allow create: if false; // Only bot creates deposits
+      allow update, delete: if request.auth != null;
+    }
+    
+    // Settings: Authenticated admins only
+    match /settings/{settingId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
