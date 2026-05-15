@@ -6,12 +6,14 @@ function startListeners(client) {
 
   onDepositChange((snapshot) => {
     snapshot.docChanges().forEach((change) => {
-      // Sirf modified documents ko process karein (approve/reject)
-      if (change.type === 'modified') {
+      // BUG FIX: Firestore triggers 'added' when a doc enters the query scope.
+      // When a deposit goes from 'pending' to 'approved', it enters this query, 
+      // so we MUST listen to both 'added' and 'modified'.
+      if (change.type === 'added' || change.type === 'modified') {
         const data = change.doc.data();
         const docId = change.doc.id;
 
-        // Agar pehle se notified hai to dobara mat bhejo
+        // Extra safety check to avoid double-sending
         if (data.notified) return;
 
         processNotification(client, docId, data);
@@ -30,10 +32,10 @@ async function processNotification(client, docId, data) {
       // Agar admin ne koi instruction/ID diya hai to usko message mein add karein
       let instructionPart = '';
       if (adminNote && adminNote.trim() !== '') {
-        instructionPart = `\n📝 *Admin Instructions:* ${adminNote}`;
+        instructionPart = `\n\n📝 *Admin Instructions:* ${adminNote}`;
       }
 
-      message = `🎉 *Payment Approved!*\n━━━━━━━━━━━━━━━━\n✅ Mubarak ho! Aapka payment confirm ho gaya.\n\n🎮 *Payment ID:* ${paymentId}\n📋 *Transaction ID:* ${transactionId}${instructionPart}\n\nYeh Payment ID tournament registration mein use karein.\nSS Arena mein khush aamdeed! 🔥`;
+      message = `🎉 *Payment Approved!*\n━━━━━━━━━━━━━━━━\n✅ Mubarak ho! Aapka payment confirm ho gaya.\n\n🎮 *Payment ID:* ${paymentId}\n📋 *Transaction ID:* ${transactionId}${instructionPart}\n\nYeh Payment ID Wallet Deposit Section mein use karein.\nSS Arena mein deposit krne ke liye ap ka Thanks! 🔥`;
       
     } else if (status === 'rejected') {
       message = `❌ *Payment Rejected*\n━━━━━━━━━━━━━━━━\nAapka deposit reject kar diya gaya.\n\n📋 *Transaction ID:* ${transactionId}\n📝 *Reason:* ${rejectReason || 'Not specified'}\n\nDobara submit karne ke liye 'deposit' likhein ya support se contact karein.`;
