@@ -42,6 +42,7 @@ async function sendWelcome(client, message, userNumber) {
   const payNum = settings.paymentNumber || 'N/A';
   const amount = settings.depositAmount || 'N/A';
 
+  const welcomeMsg = `🎮 *SS Arena Payment Manager*\n━━━━━━━━━━━━━━━━\nAssalam o Alaikum! 👋\n\nSS ARENA me deposit krne ke liye DEPOSIT type karein.\n\n💳 *Payment Details:*\n• Account: ${accName} (${payNum})\n• Amount: Rs. ${amount}\n• Method: Only JAZZCASH\n\n📋 *Payment karne ke liye:*\nReply mein likho: *deposit*\n\nMain sirf payments handle karta hoon. 🤖`;
   const welcomeMsg = `🎮 *SS Arena Payment Manager*\n━━━━━━━━━━━━━━━━\nAssalam o Alaikum! 👋\n\nSS ARENA me deposit krne ke liye DEPOSIT type karein.\n\n💳 *Payment Details:*\n• Account: ${accName} (${payNum})\n• Amount: Rs. ${amount}\n• Method: Only JAZZCASH\n\n📋 *Payment karne ke baad:*\nReply mein likho: *deposit*\n\nMain sirf payments handle karta hoon. 🤖`;
 
   await client.sendMessage(message.from, welcomeMsg);
